@@ -1,4 +1,10 @@
-import urllib2
+import sys
+if sys.version_info >= (3,0,0):
+    is3 = True
+    from urllib import request
+else:
+    is3 = False
+    import urllib2
 from bs4 import BeautifulSoup
 import csv
 from time import strftime
@@ -10,7 +16,10 @@ def processtable(url):
     props = []
     data = []
     yesno = []
-    html = urllib2.urlopen(url)
+    if(is3):
+        html = request.urlopen(url)
+    else:
+        html = urllib2.urlopen(url)
     soup = BeautifulSoup(html)
     table = soup.find_all('table', id='ctl00_CountySummary_tblCountySummary')[0]
     trs = table.find_all('tr')
@@ -32,7 +41,10 @@ def processtable(url):
     return props,yesno,data
 
 def writedata(props,yesno,data,outfile):
-    c = csv.writer(open(outfile, "wb"))
+    if(is3):
+        c = csv.writer(open(outfile, "w", newline=''))
+    else:
+        c = csv.writer(open(outfile, "wb"))
     c.writerow(props)
     c.writerow(yesno)
     for row in data:
@@ -50,14 +62,14 @@ def main():
 
     i = 0
     while True:
-        print "Running scrape #{0}".format(i)
-        print "Reading Table from Web ..."
+        print("Running scrape #{0}".format(i))
+        print("Reading Table from Web ...")
         props,yesno,data = processtable(url)
-        print "Writing out CSV .."
+        print ("Writing out CSV ..")
         writedata(props,yesno,data,outfile)
-        print "Pushing to Github ..."
+        print ("Pushing to Github ...")
         gitpush(outfile)
-        print "Waiting 60 seconds ..."
+        print ("Waiting 60 seconds ...")
         time.sleep(60)
         i += 1
 
