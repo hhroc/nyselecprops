@@ -1,6 +1,10 @@
 import urllib2
 from bs4 import BeautifulSoup
 import csv
+from time import strftime
+import os
+import subprocess
+import time
 
 def processtable(url):
     props = []
@@ -16,13 +20,14 @@ def processtable(url):
             for i in range(0,len(tds)):
                 if not i == 0:
                     props.append(tds[i]['title'])
+                    props.append('')
         elif i == 1:
             for i in range(0,len(tds)):
                 yesno.append(tds[i].find(text=True))
         else:
             row = []
             for i in range(0,len(tds)):
-                row.append(tds[i].find(text=True))
+                row.append(tds[i].find(text=True).replace(',','').strip())
             data.append(row)
     return props,yesno,data
 
@@ -34,18 +39,27 @@ def writedata(props,yesno,data,outfile):
         c.writerow(row)
 
 def gitpush(outfile):
-    # zomg pill request me
-    return
+    isodatetime = strftime("%Y-%m-%d %H:%M:%S")
+    cmd = 'git add %s; git commit -m "%s"' % (outfile, isodatetime)
+    pipe = subprocess.Popen(cmd, shell=True, cwd=os.getcwd())
+    pipe.wait()
 
 def main():
     url = "http://nyenr.elections.state.ny.us/UnofficialElectionResultsCounty.aspx"
     outfile = "propositions.csv"
-    print "Reading Table from Web ..."
-    props,yesno,data = processtable(url)
-    print "Writing out CSV .."
-    writedata(props,yesno,data,outfile)
-    print "Pushing to Github ..."
-    gitpush(outfile)
-    print "Done."
+
+    i = 0
+    while True:
+        print "Running scrape #{0}".format(i)
+        print "Reading Table from Web ..."
+        props,yesno,data = processtable(url)
+        print "Writing out CSV .."
+        writedata(props,yesno,data,outfile)
+        print "Pushing to Github ..."
+        gitpush(outfile)
+        print "Waiting 60 seconds ..."
+        time.sleep(60)
+        i += 1
 
 main()
+
