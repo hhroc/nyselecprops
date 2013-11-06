@@ -4,7 +4,8 @@ import csv
 
 def processtable(url):
     props = []
-    data = [] 
+    data = []
+    yesno = []
     html = urllib2.urlopen(url)
     soup = BeautifulSoup(html)
     table = soup.find_all('table', id='ctl00_CountySummary_tblCountySummary')[0]
@@ -15,18 +16,19 @@ def processtable(url):
             for i in range(0,len(tds)):
                 if not i == 0:
                     props.append(tds[i]['title'])
-        elif i == 1 or 1 == 2:
-            pass
+        elif i == 1:
+            yesno.append(tds[i].find(text=True))
         else:
             row = []
             for i in range(0,len(tds)):
                 row.append(tds[i].find(text=True))
             data.append(row)
-    return props,data
+    return props,yesno,data
 
 def writedata(props,data,outfile):
     c = csv.writer(open(outfile, "wb"))
     c.writerow(props)
+    c.writerow(yesno)
     for row in data:
         c.writerow(row)
 
