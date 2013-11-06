@@ -17,7 +17,8 @@ def processtable(url):
                 if not i == 0:
                     props.append(tds[i]['title'])
         elif i == 1:
-            yesno.append(tds[i].find(text=True))
+            for i in range(0,len(tds)):
+                yesno.append(tds[i].find(text=True))
         else:
             row = []
             for i in range(0,len(tds)):
@@ -25,7 +26,7 @@ def processtable(url):
             data.append(row)
     return props,yesno,data
 
-def writedata(props,data,outfile):
+def writedata(props,yesno,data,outfile):
     c = csv.writer(open(outfile, "wb"))
     c.writerow(props)
     c.writerow(yesno)
@@ -40,9 +41,9 @@ def main():
     url = "http://nyenr.elections.state.ny.us/UnofficialElectionResultsCounty.aspx"
     outfile = "propositions.csv"
     print "Reading Table from Web ..."
-    props,data = processtable(url)
+    props,yesno,data = processtable(url)
     print "Writing out CSV .."
-    writedata(props,data,outfile)
+    writedata(props,yesno,data,outfile)
     print "Pushing to Github ..."
     gitpush(outfile)
     print "Done."
